@@ -1,0 +1,10 @@
+{
+  "name": "pay-by-bank",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@minka/ledger-sdk": "^2.0.0"
+  }
+}
