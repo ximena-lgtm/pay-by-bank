@@ -1,0 +1,350 @@
+/* Bank Login Screen - Modern Design */
+
+/* Header Styling */
+.nu-header {
+  padding: 20px 24px 48px;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.nu-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.bank-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 10;
+}
+
+/* Decorative elements */
+.nu-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: 1;
+}
+
+.nu-header-decoration {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 1;
+}
+
+.nu-header + .screen-body {
+  background: #fafafa;
+  color: #1d1d1f;
+  min-height: calc(100vh - 200px);
+  padding: 32px 0;
+  border-radius: 24px 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 5;
+  margin-top: -24px;
+}
+
+/* Back Button */
+.nu-back {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 44px;
+  height: 44px;
+  position: relative;
+  z-index: 10;
+}
+
+.nu-back:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateX(-2px);
+}
+
+.nu-back:active {
+  transform: scale(0.95);
+}
+
+.nu-back svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Header Front Content */
+.nu-header-front {
+  position: relative;
+  z-index: 100;
+  padding: 60px 24px 48px;
+  margin-top: auto;
+}
+
+.nu-wordmark {
+  color: white !important;
+  font-size: 42px;
+  font-weight: 800;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  letter-spacing: -1.5px;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 100;
+}
+
+.nu-subtitle {
+  color: white !important;
+  font-size: 18px;
+  font-weight: 500;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 100;
+}
+
+/* Login Container */
+.login-container {
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  color: #1d1d1f;
+  letter-spacing: -0.6px;
+}
+
+.login-desc {
+  font-size: 16px;
+  color: #6e6e73;
+  line-height: 1.5;
+  margin-bottom: 32px;
+  font-weight: 400;
+}
+
+/* Form Styling */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.2px;
+  padding-left: 4px;
+}
+
+/* Input Wrapper - Card Style */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid #e8e8ed;
+  border-radius: 16px;
+  padding: 0 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.input-wrapper:hover {
+  border-color: #d1d1d6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.input-wrapper:focus-within {
+  border-color: #5856d6;
+  box-shadow: 0 0 0 4px rgba(88, 86, 214, 0.15), 0 8px 24px rgba(88, 86, 214, 0.12);
+  background: white;
+  transform: translateY(-2px);
+}
+
+.input-wrapper svg:first-child {
+  flex-shrink: 0;
+  margin-right: 14px;
+  opacity: 0.5;
+  transition: all 0.3s;
+}
+
+.input-wrapper:focus-within svg:first-child {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.form-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 18px 0;
+  font-size: 17px;
+  color: #1d1d1f;
+  font-family: var(--font);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+
+.form-input::placeholder {
+  color: #a8a8ad;
+  font-weight: 400;
+}
+
+/* Toggle Password Button */
+.toggle-password {
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  padding: 10px;
+  margin: -8px -8px -8px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 10px;
+}
+
+.toggle-password:hover {
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(1.08);
+}
+
+.toggle-password:active {
+  transform: scale(0.95);
+}
+
+/* Security Notice */
+.security-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  /* background y border vienen de inline styles con bank.color */
+  border-radius: 14px;
+  margin-top: 4px;
+}
+
+.security-notice svg {
+  flex-shrink: 0;
+  /* stroke viene de inline style con bank.color */
+}
+
+.security-notice p {
+  font-size: 14px;
+  color: #3a3a3f;
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Login Button */
+.login-btn {
+  margin-top: 8px;
+  padding: 20px 24px;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.3px;
+  border: none;
+  color: white !important;
+}
+
+.login-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.login-btn:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.login-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Help Links */
+.help-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.help-links a {
+  font-size: 15px;
+  /* color viene de inline style con bank.color */
+  text-decoration: none;
+  transition: all 0.2s;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.help-links a:hover {
+  opacity: 0.8;
+  text-decoration: none;
+  transform: scale(1.05);
+}
+
+.help-links a:active {
+  transform: scale(0.98);
+}
+
+.help-links .separator {
+  font-size: 16px;
+  color: #c7c7cc;
+  font-weight: 400;
+}
+

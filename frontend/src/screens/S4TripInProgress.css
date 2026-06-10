@@ -1,0 +1,60 @@
+.trip-map {
+  height: 200px;
+  background: #141618;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.car-icon {
+  position: absolute;
+  transform: translateY(-50%);
+  transition: left 0.15s linear;
+}
+.dest-pin {
+  position: absolute;
+  right: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.driver-card {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 4px;
+}
+.driver-avatar {
+  width: 52px; height: 52px;
+  background: var(--bg-card-2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.driver-name    { font-size: 16px; font-weight: 600; }
+.driver-vehicle { font-size: 13px; color: var(--text-secondary); margin: 2px 0 6px; }
+.driver-stars   { display: flex; align-items: center; gap: 3px; }
+.rating         { font-size: 13px; font-weight: 600; color: var(--star); margin-left: 4px; }
+
+.eta-card {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 8px;
+}
+.eta-main { font-size: 16px; font-weight: 600; }
+.eta-sep  { color: var(--text-muted); }
+.eta-sub  { font-size: 14px; color: var(--text-secondary); }
+
+.paid-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--green-bg);
+  border: 1px solid rgba(46,184,122,0.2);
+  margin-top: 8px;
+}
+.paid-title { font-size: 14px; font-weight: 600; color: var(--green); }
+.paid-sub   { font-size: 13px; color: var(--green); opacity: 0.8; margin-top: 2px; }
+
+.nocharge-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-top: 8px;
+}
+.nocharge-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+.btn-secondary.dim { color: var(--text-muted); }

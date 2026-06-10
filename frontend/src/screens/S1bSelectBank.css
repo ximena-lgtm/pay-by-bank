@@ -1,0 +1,108 @@
+.banks-title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+.banks-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.section-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  margin-top: 8px;
+}
+.search-box {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+.search-box input {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: var(--text-primary);
+  font-family: var(--font);
+  flex: 1;
+}
+.search-box input::placeholder { color: var(--text-muted); }
+
+.directory-badge {
+  background: var(--green-bg);
+  border: 1px solid rgba(46,184,122,0.2);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.bank-list { display: flex; flex-direction: column; gap: 8px; }
+
+.bank-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.bank-row.selected { background: var(--bg-selected); }
+
+.bank-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bank-info { flex: 1; }
+.bank-name { font-size: 15px; font-weight: 600; }
+.bank-sub  { font-size: 12px; color: var(--text-secondary); margin-top: 3px; display: flex; align-items: center; }
+
+.radio-check { color: var(--text-primary); flex-shrink: 0; }
+.radio-empty {
+  width: 22px; height: 22px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Info button for linked banks */
+.bank-info-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.bank-info-btn:hover {
+  background: var(--bg);
+  color: var(--green);
+  transform: scale(1.05);
+}
+
+.bank-info-btn:active {
+  transform: scale(0.95);
+}

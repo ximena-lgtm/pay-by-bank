@@ -1,0 +1,65 @@
+.success-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 0 8px;
+}
+.success-circle {
+  width: 72px; height: 72px;
+  background: #1e4d2b;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.arrived-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.arrived-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.summary-card { display: flex; flex-direction: column; gap: 8px; }
+.summary-row  { display: flex; gap: 12px; align-items: baseline; }
+.sum-label    { font-size: 13px; color: var(--text-secondary); width: 68px; flex-shrink: 0; }
+.sum-value    { font-size: 14px; font-weight: 600; }
+.sum-value.green { color: var(--green); }
+
+.breb-banner {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--green-bg);
+  border: 1px solid rgba(46,184,122,0.2);
+  margin-top: 8px;
+}
+.breb-banner p { font-size: 13px; color: var(--green); line-height: 1.5; }
+
+.rating-card {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 16px;
+}
+.star-btn {
+  background: none; border: none; cursor: pointer; padding: 4px;
+  transition: transform 0.1s;
+}
+.star-btn:active { transform: scale(1.2); }
+
+.receipt-row {
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.receipt-icon {
+  width: 40px; height: 40px;
+  background: var(--bg-card-2);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.receipt-title { font-size: 15px; font-weight: 600; }
+.receipt-sub   { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }

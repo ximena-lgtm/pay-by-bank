@@ -1,0 +1,75 @@
+.hub-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  flex-shrink: 0;
+}
+.hub-brand { display: flex; align-items: center; gap: 10px; }
+.hub-name   { font-size: 14px; font-weight: 600; }
+.hub-domain { font-size: 12px; color: var(--text-secondary); }
+
+.consent-title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+.consent-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.instrument-card {
+  position: relative;
+  padding-left: 20px;
+}
+.instrument-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--nu-purple);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.instrument-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.instrument-rows { display: flex; flex-direction: column; gap: 6px; }
+.instrument-row  { display: flex; gap: 12px; align-items: baseline; }
+.inst-label      { font-size: 13px; color: var(--text-secondary); width: 64px; flex-shrink: 0; }
+.inst-value      { font-size: 14px; font-weight: 600; }
+
+.warn-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--orange-bg);
+  border: 1px solid rgba(232,125,43,0.2);
+  margin-top: 8px;
+}
+.warn-card p { font-size: 13px; color: var(--orange); line-height: 1.5; }
+
+.sfc-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-top: 8px;
+}
+.sfc-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+.what-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 20px 0 12px;
+}
+.what-list { display: flex; flex-direction: column; gap: 14px; }
+.what-row  { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-secondary); }
+.what-icon { color: var(--text-secondary); display: flex; align-items: center; }
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+}
+.btn-row .btn-secondary {
+  width: auto;
+  flex: 1;
+}

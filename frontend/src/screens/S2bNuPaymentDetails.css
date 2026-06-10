@@ -1,0 +1,120 @@
+.details-title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.details-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.redirect-notice {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.payment-details-card {
+  position: relative;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.pd-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--nu-purple, #8A05BE);
+}
+
+.pd-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pd-header span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nu-purple, #8A05BE);
+}
+
+.pd-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.pd-row.highlight {
+  background: rgba(138, 5, 190, 0.05);
+  padding: 12px;
+  margin: 4px -12px;
+  border-radius: 8px;
+}
+
+.pd-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-width: 80px;
+}
+
+.pd-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.pd-value.amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nu-purple, #8A05BE);
+}
+
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  margin-top: 12px;
+}
+
+.info-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.sfc-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 16px 0 8px;
+}
