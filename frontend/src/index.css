@@ -1,45 +1,70 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-base:      #0d0f11;
-  --bg-card:      #1a1d21;
-  --bg-card-2:    #222529;
-  --bg-selected:  #25272c;
-  --bg-secondary: #1a1d21;
-  --border:       rgba(255,255,255,0.08);
-  --text-primary: #ffffff;
-  --text-secondary: #9099a6;
-  --text-muted:   #545b64;
-  --green:        #2EB87A;
-  --green-bg:     rgba(46,184,122,0.12);
-  --orange:       #E87D2B;
-  --orange-bg:    rgba(232,125,43,0.12);
-  --nu-purple:    #8A05BE;
-  --nu-bg:        rgba(138,5,190,0.12);
-  --star:         #E8A020;
-  --font:         'Inter', -apple-system, sans-serif;
-  --radius-sm:    10px;
-  --radius-md:    14px;
-  --radius-lg:    20px;
-  --radius-full:  9999px;
+  /* ── Superficie del comercio (Uber) ───────────────────────── */
+  --bg-base:       #FFFFFF;
+  --bg-card:       #F4F5F8;
+  --bg-card-2:     #EBEDF3;
+  --bg-selected:   #EEF1FB;
+  --bg-secondary:  #F4F5F8;
+  --border:        rgba(0, 23, 46, 0.10);
+  --border-strong: rgba(0, 23, 46, 0.16);
+  --text-primary:  #111112;
+  --text-secondary:#5A6B80;
+  --text-muted:    #8A94A6;
+
+  /* ── Superficie del iniciador (Telar) ─────────────────────── */
+  --telar-surface: #F5F5FF;
+  --telar-card:    #FFFFFF;
+  --telar-border:  #DFE0FA;
+  --telar-ink:     #00172E;
+  --telar-blue:    #156EF5;   /* acción */
+  --telar-blue-ink:#1257CC;   /* texto azul sobre claro */
+  --telar-violet:  #8358EF;   /* solo marca */
+  --telar-mint:    #42F0CD;   /* relleno de confirmación */
+  --telar-mint-ink:#0A6B58;   /* texto de confirmación */
+  --telar-mint-bg: rgba(66, 240, 205, 0.22);
+  --telar-violet-bg: rgba(131, 88, 239, 0.14);
+  --telar-violet-ink:#5B32C0;
+
+  /* ── Entidades financieras ────────────────────────────────── */
+  --nu-purple:     #8A05BE;
+  --nu-bg:         rgba(138, 5, 190, 0.08);
+
+  /* ── Semánticos ───────────────────────────────────────────── */
+  --green:         #0A6B58;
+  --green-bg:      rgba(10, 107, 88, 0.10);
+  --orange:        #A5541B;
+  --orange-bg:     rgba(165, 84, 27, 0.10);
+  --star:          #B07A0C;
+
+  --font:          'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --radius-sm:     10px;
+  --radius-md:     14px;
+  --radius-lg:     20px;
+  --radius-full:   9999px;
+
+  --shadow-card:   0 1px 2px rgba(0, 23, 46, 0.06);
+  --shadow-raised: 0 2px 8px rgba(0, 23, 46, 0.10);
+  --shadow-sheet:  0 -6px 24px rgba(0, 23, 46, 0.18);
 }
 
 html, body, #root {
   height: 100%;
-  background: var(--bg-base);
+  background: #E6E9F5;
   color: var(--text-primary);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Phone shell wrapper */
+/* Phone shell — bisel oscuro, pantalla clara */
 .phone-shell {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
-  background: #070809;
+  background: #E6E9F5;
 }
 
 .phone {
@@ -49,7 +74,10 @@ html, body, #root {
   border-radius: 44px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow:
+    0 0 0 8px #17181C,
+    0 4px 10px rgba(0, 23, 46, 0.18),
+    0 34px 80px rgba(0, 23, 46, 0.30);
   display: flex;
   flex-direction: column;
 }
@@ -65,6 +93,7 @@ html, body, #root {
   color: var(--text-primary);
   flex-shrink: 0;
 }
+.status-icons { display: flex; align-items: center; gap: 5px; }
 
 /* Nav bar */
 .nav-bar {
@@ -76,7 +105,8 @@ html, body, #root {
 }
 .nav-bar h1 {
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .nav-back {
   background: none;
@@ -94,7 +124,7 @@ html, body, #root {
 .screen-body {
   flex: 1;
   overflow-y: auto;
-  padding: 0 20px 32px;
+  padding: 0 16px 32px;
   display: flex;
   flex-direction: column;
 }
@@ -117,19 +147,20 @@ html, body, #root {
 
 /* Labels */
 .label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
   margin-bottom: 10px;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* Buttons */
 .btn-primary {
   width: 100%;
-  padding: 18px 24px;
+  padding: 17px 24px;
   background: var(--text-primary);
-  color: var(--bg-base);
+  color: #fff;
   border: none;
   border-radius: var(--radius-full);
   font-size: 16px;
@@ -141,17 +172,19 @@ html, body, #root {
   justify-content: center;
   gap: 8px;
   transition: opacity 0.15s;
+  box-shadow: var(--shadow-raised);
 }
 .btn-primary:active { opacity: 0.85; }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-primary.nu { background: var(--nu-purple); color: #fff; }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+.btn-primary.telar { background: var(--telar-blue); }
+.btn-primary.nu { background: var(--nu-purple); }
 
 .btn-secondary {
   width: 100%;
-  padding: 18px 24px;
-  background: var(--bg-card);
+  padding: 17px 24px;
+  background: transparent;
   color: var(--text-secondary);
-  border: none;
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-full);
   font-size: 16px;
   font-weight: 600;
@@ -159,12 +192,12 @@ html, body, #root {
   cursor: pointer;
   transition: opacity 0.15s;
 }
-.btn-secondary:active { opacity: 0.85; }
+.btn-secondary:active { opacity: 0.7; }
 
 /* Badge */
 .badge {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 3px 8px;
   border-radius: var(--radius-full);
 }
@@ -178,4 +211,49 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.footer-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Encabezado de sección con acción a la derecha */
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.label-row .label { margin-bottom: 0; }
+
+.label-action {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--telar-blue-ink);
+  cursor: pointer;
+}
+.label-action:active { opacity: 0.6; }
+
+/* Chevron de fila navegable — compartido por varias pantallas */
+.pm-chevron {
+  color: var(--text-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Radio */
+.radio-check { display: flex; color: var(--telar-blue); }
+.radio-empty {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #C8CFDD;
+  flex-shrink: 0;
 }

@@ -1,174 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TelarSheet, { TelarEventLog } from '../telar/TelarSheet.jsx';
+import { TELAR, formatCOP } from '../telar/brand.js';
+import { telarState, useTelarEvents } from '../telar/useTelar.js';
 import './S3cPaymentProcessing.css';
 
+/**
+ * Liquidación.
+ *
+ * Vuelve a ser superficie del iniciador: Telar cierra el ciclo y devuelve el
+ * control al comercio. El banco ya hizo lo suyo.
+ */
 export default function S3cPaymentProcessing() {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [molId, setMolId] = useState('');
-  const [bank, setBank] = useState(null);
-  const [amount, setAmount] = useState('18.500');
+  const [step, setStep] = useState(0);
+
+  const bank = telarState.getBank();
+  const payment = telarState.getPayment();
+  const result = telarState.getResult();
+  const { events } = useTelarEvents(2);
+
+  const reference = result?.intent?.reference || result?.paymentId || 'MOL-48213307';
 
   useEffect(() => {
-    // Leer información del banco y monto
-    const bankStr = sessionStorage.getItem('selectedBank');
-    const instrumentStr = sessionStorage.getItem('instrument');
-
-    if (bankStr) {
-      setBank(JSON.parse(bankStr));
-    }
-    if (instrumentStr) {
-      const instrument = JSON.parse(instrumentStr);
-      setAmount(instrument.amount?.toLocaleString('es-CO') || '18.500');
-    }
-
-    // Generar MOL ID único
-    const generatedMolId = `MOL-${Date.now().toString().slice(-8)}`;
-    setMolId(generatedMolId);
-
-    // Simular progreso de pasos
-    const stepTimings = [1000, 2000, 2000, 1500]; // Tiempo para cada paso
-
-    stepTimings.forEach((delay, index) => {
-      setTimeout(() => {
-        setCurrentStep(index + 1);
-      }, stepTimings.slice(0, index + 1).reduce((a, b) => a + b, 0));
-    });
+    const timings = [900, 1600, 1600, 1200];
+    const timers = timings.map((_, i) =>
+      setTimeout(() => setStep(i + 1), timings.slice(0, i + 1).reduce((a, b) => a + b, 0))
+    );
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   const steps = [
-    {
-      id: 1,
-      title: 'Debitando fondos',
-      description: bank ? `Desde ${bank.name} · Cta *8834` : 'Desde tu cuenta',
-      color: bank?.color || '#8A05BE',
-    },
-    {
-      id: 2,
-      title: 'Enviando a Bre-B',
-      description: 'Red de pagos interbancarios',
-      color: '#0066CC',
-    },
-    {
-      id: 3,
-      title: 'Aprobando crédito',
-      description: 'Bancolombia · Cuenta Uber',
-      color: '#00A650',
-    },
-    {
-      id: 4,
-      title: 'Confirmación',
-      description: `MOL ID: ${molId}`,
-      color: '#00C853',
-    },
+    { title: 'Autorización recibida', desc: 'SCA · autenticación reforzada' },
+    { title: `Débito en ${bank?.name || 'tu banco'}`, desc: `COP ${formatCOP(payment?.amount)} · ${bank?.accountType || ''} ${bank?.account || ''}` },
+    { title: 'Liquidando en Bre-B', desc: 'Red de pagos inmediatos' },
+    { title: 'Abono a Uber', desc: 'Bancolombia · cuenta comercio' },
   ];
 
-  function handleContinue() {
-    navigate('/trip');
-  }
-
-  if (!bank) {
-    return <div>Cargando...</div>;
-  }
+  const done = step >= steps.length;
 
   return (
-    <div className="processing-screen">
-      {/* Header */}
-      <div className="processing-header">
-        <div className="processing-amount">COP {amount}</div>
-        <div className="processing-subtitle">Procesando pago</div>
-      </div>
+    <TelarSheet subtitle={done ? 'Pago liquidado' : 'Liquidando el pago'}>
+      <h2 className="telar-title">
+        {done ? 'Tu pago quedó liquidado' : 'Estamos confirmando tu pago'}
+      </h2>
+      <p className="telar-desc">
+        {done
+          ? 'El conductor ya recibió la señal de inicio.'
+          : 'No cierres la aplicación. Tarda unos segundos.'}
+      </p>
 
-      {/* Steps */}
-      <div className="processing-steps">
-        {steps.map((step, index) => {
-          const isCompleted = currentStep >= step.id;
-          const isCurrent = currentStep === step.id - 1;
-          const isPending = currentStep < step.id - 1;
-
-          return (
-            <div
-              key={step.id}
-              className={`processing-step ${
-                isCompleted ? 'completed' : isCurrent ? 'current' : 'pending'
-              }`}
-            >
-              {/* Connector line */}
-              {index > 0 && (
-                <div className={`step-connector ${isCompleted ? 'completed' : ''}`} />
+      <div className="proc-steps">
+        {steps.map((s, i) => (
+          <div key={s.title} className={`proc-step ${i < step ? 'done' : i === step ? 'live' : ''}`}>
+            <span className="proc-dot">
+              {i < step && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               )}
-
-              {/* Step content */}
-              <div className="step-circle" style={{
-                borderColor: isCompleted ? step.color : '#e0e0e0',
-                backgroundColor: isCompleted ? step.color : 'white'
-              }}>
-                {isCompleted ? (
-                  <span className="step-checkmark-icon">✓</span>
-                ) : (
-                  <span className="step-number">{step.id}</span>
-                )}
-              </div>
-
-              <div className="step-content">
-                <div className="step-title" style={{
-                  color: isCompleted ? '#1d1d1f' : '#999'
-                }}>
-                  {step.title}
-                </div>
-                <div className="step-description" style={{
-                  color: isCompleted ? '#666' : '#ccc'
-                }}>
-                  {step.description}
-                </div>
-
-                {/* Loading indicator for current step */}
-                {isCurrent && (
-                  <div className="step-loading">
-                    <div className="loading-dots">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Success checkmark for completed steps */}
-                {isCompleted && step.id < 4 && (
-                  <div className="step-checkmark">✓</div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            </span>
+            <span className="proc-body">
+              <span className="proc-title">{s.title}</span>
+              <span className="proc-desc">{s.desc}</span>
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Footer with continue button */}
-      {currentStep >= 4 && (
-        <div className="processing-footer">
-          <div className="success-message">
-            <div className="success-icon">✓</div>
-            <div className="success-text">
-              <div className="success-title">Pago aprobado</div>
-              <div className="success-subtitle">
-                Liquidado vía Bre-B · MOL ID {molId}
-              </div>
-            </div>
-          </div>
+      <div className="divider" />
 
-          <button
-            className="btn-primary continue-btn"
-            onClick={handleContinue}
-            style={{ backgroundColor: bank.color }}
-          >
-            Continuar
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
+      <div className="kv-list">
+        <div className="kv-row">
+          <span className="kv-key">Referencia</span>
+          <span className="kv-val">{reference}</span>
         </div>
-      )}
+        <div className="kv-row">
+          <span className="kv-key">Autorización</span>
+          <span className="kv-val">Uso único</span>
+        </div>
+      </div>
 
-    </div>
+      <TelarEventLog events={events} />
+
+      <div className="cta-area">
+        {done ? (
+          <button className="btn-primary telar" onClick={() => navigate('/trip')}>
+            Volver a Uber
+          </button>
+        ) : (
+          <p className="footer-note">Al terminar volverás a Uber automáticamente</p>
+        )}
+        <p className="footer-note">{TELAR.legalName} · {TELAR.sfcReg}</p>
+      </div>
+    </TelarSheet>
   );
 }

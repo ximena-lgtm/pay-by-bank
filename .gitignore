@@ -1,0 +1,9 @@
+# Salida de build
+dist/
+
+# Dependencias (las ya versionadas siguen en el índice; esto es para nuevas)
+node_modules/
+
+# Herramientas locales
+.claude/
+.DS_Store

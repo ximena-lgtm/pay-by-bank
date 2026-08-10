@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { completeTrip } from '../api/index.js';
+import { formatCOP } from '../telar/brand.js';
+import { telarState } from '../telar/useTelar.js';
 import './S4TripInProgress.css';
 
 export default function S4TripInProgress() {
   const navigate = useNavigate();
-  const [eta, setEta] = useState(4);
+  const [eta] = useState(4);
   const [carPos, setCarPos] = useState(0);
+
+  const bank = telarState.getBank();
+  const payment = telarState.getPayment();
 
   // Animate car across the map area
   useEffect(() => {
@@ -93,7 +98,9 @@ export default function S4TripInProgress() {
           </svg>
           <div>
             <p className="paid-title">Pago ejecutado</p>
-            <p className="paid-sub">COP 18.500 debitado de Nu *8834 · Bre-B liquidado</p>
+            <p className="paid-sub">
+              COP {formatCOP(payment?.amount)} debitado de {bank?.name || 'tu banco'} {bank?.account || ''} · Bre-B liquidado
+            </p>
           </div>
         </div>
 

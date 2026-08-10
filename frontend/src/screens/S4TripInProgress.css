@@ -1,60 +1,111 @@
 .trip-map {
-  height: 200px;
-  background: #141618;
+  height: 168px;
+  margin: 0 16px 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #EEF1FB 0%, #E1E7F5 100%);
+  border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+
+.trip-map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,23,46,0.05) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(0deg, rgba(0,23,46,0.05) 0 1px, transparent 1px 42px);
+}
+
 .car-icon {
   position: absolute;
-  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: left 0.15s linear;
+  box-shadow: 0 3px 10px rgba(0, 23, 46, 0.28);
+  z-index: 2;
 }
+
 .dest-pin {
   position: absolute;
-  right: 25%;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 34px;
+  top: 32%;
+  z-index: 2;
 }
 
+/* Conductor */
 .driver-card {
-  display: flex; align-items: center; gap: 14px;
-  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px;
 }
+
 .driver-avatar {
-  width: 52px; height: 52px;
-  background: var(--bg-card-2);
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-card-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
-.driver-name    { font-size: 16px; font-weight: 600; }
-.driver-vehicle { font-size: 13px; color: var(--text-secondary); margin: 2px 0 6px; }
-.driver-stars   { display: flex; align-items: center; gap: 3px; }
-.rating         { font-size: 13px; font-weight: 600; color: var(--star); margin-left: 4px; }
 
+.driver-info { flex: 1; }
+.driver-name { font-size: 15px; font-weight: 700; letter-spacing: -0.015em; }
+.driver-vehicle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.driver-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 5px;
+}
+.driver-stars .rating {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  margin-left: 5px;
+}
+
+/* ETA */
 .eta-card {
-  display: flex; align-items: center; gap: 12px;
-  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  color: var(--text-primary);
 }
-.eta-main { font-size: 16px; font-weight: 600; }
-.eta-sep  { color: var(--text-muted); }
-.eta-sub  { font-size: 14px; color: var(--text-secondary); }
+.eta-main { font-size: 14px; font-weight: 650; }
+.eta-sep, .eta-sub { font-size: 13px; color: var(--text-muted); }
 
+/* Pago ejecutado */
 .paid-card {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px;
   background: var(--green-bg);
-  border: 1px solid rgba(46,184,122,0.2);
-  margin-top: 8px;
 }
-.paid-title { font-size: 14px; font-weight: 600; color: var(--green); }
-.paid-sub   { font-size: 13px; color: var(--green); opacity: 0.8; margin-top: 2px; }
+.paid-title { font-size: 13.5px; font-weight: 650; color: var(--green); }
+.paid-sub { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.4; }
+.paid-card svg { flex-shrink: 0; margin-top: 1px; }
 
+/* Sin cobro adicional */
 .nocharge-card {
-  display: flex; align-items: flex-start; gap: 10px;
-  margin-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 14px;
 }
-.nocharge-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.nocharge-card p { font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
+.nocharge-card svg { flex-shrink: 0; margin-top: 1px; }
 
 .btn-secondary.dim { color: var(--text-muted); }

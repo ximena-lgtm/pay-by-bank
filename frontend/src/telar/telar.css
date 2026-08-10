@@ -1,0 +1,386 @@
+/* ── Módulo embebido ────────────────────────────────────────────────────────
+   Vive dentro de la pantalla del comercio. El tinte lavanda contra el blanco de
+   Uber es la señal de que esta caja la sirve un tercero.                      */
+
+.telar-embed {
+  border: 1px solid var(--telar-border);
+  border-radius: var(--radius-md);
+  background: var(--telar-surface);
+  padding: 12px;
+}
+
+.telar-embed-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 11px;
+}
+.telar-embed-name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--telar-ink);
+}
+.telar-embed-role {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.telar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--telar-card);
+  border: 1px solid var(--telar-border);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+}
+.telar-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--telar-ink);
+}
+.telar-search input::placeholder { color: var(--text-muted); }
+
+.telar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.telar-tile {
+  background: var(--telar-card);
+  border: 1px solid #E6E6FF;
+  border-radius: var(--radius-sm);
+  padding: 12px 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.12s, transform 0.12s;
+}
+.telar-tile:hover { border-color: var(--telar-blue); }
+.telar-tile:active { transform: scale(0.97); }
+.telar-tile:disabled { opacity: 0.5; cursor: progress; }
+.telar-tile-name {
+  font-size: 10px;
+  font-weight: 550;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.telar-embed-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 11px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.telar-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--telar-blue-ink);
+  cursor: pointer;
+}
+
+/* Esqueleto de carga: nunca una caja vacía */
+.telar-tile.skeleton {
+  cursor: default;
+  border-color: var(--telar-border);
+  background: linear-gradient(90deg, #FFFFFF 0%, #F0F1FB 50%, #FFFFFF 100%);
+  background-size: 200% 100%;
+  animation: telar-shimmer 1.3s ease-in-out infinite;
+  min-height: 72px;
+}
+@keyframes telar-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .telar-tile.skeleton { animation: none; }
+}
+
+.telar-empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Fila de cuenta vinculada ───────────────────────────────────────────── */
+
+.telar-account {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--telar-card);
+  border: 1px solid #E2E6F2;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  font-family: var(--font);
+  text-align: left;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.telar-account + .telar-account { margin-top: 8px; }
+.telar-account.selected {
+  border-color: var(--telar-blue);
+  box-shadow: 0 0 0 1px var(--telar-blue), 0 1px 4px rgba(21, 110, 245, 0.16);
+}
+.telar-account-body { flex: 1; min-width: 0; }
+.telar-account-name {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.telar-account-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Hoja del iniciador ─────────────────────────────────────────────────── */
+
+.telar-sheet-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* El anfitrión atenuado: el gesto dice que cambiaste de responsable */
+.telar-host-dim {
+  background: rgba(0, 23, 46, 0.5);
+  flex-shrink: 0;
+  height: 68px;
+}
+
+.telar-sheet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--telar-surface);
+  border-radius: 22px 22px 0 0;
+  box-shadow: var(--shadow-sheet);
+}
+
+.telar-grab {
+  width: 38px;
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(0, 23, 46, 0.16);
+  margin: 9px auto 0;
+  flex-shrink: 0;
+}
+
+.telar-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--telar-border);
+  flex-shrink: 0;
+}
+.telar-sheet-brand { display: flex; align-items: center; gap: 9px; }
+.telar-sheet-name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--telar-ink);
+}
+.telar-sheet-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.telar-sheet-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 17px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+.telar-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.telar-sheet-body::-webkit-scrollbar { display: none; }
+
+.telar-sheet-body .card {
+  background: var(--telar-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Etiqueta de tipo de consentimiento ─────────────────────────────────── */
+
+.consent-tag {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 11px;
+  border-radius: var(--radius-full);
+  margin-bottom: 12px;
+}
+.consent-tag.data { background: var(--telar-mint-bg); color: #08594A; }
+.consent-tag.pay  { background: var(--telar-violet-bg); color: var(--telar-violet-ink); }
+
+.telar-title {
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 1.22;
+  color: var(--telar-ink);
+}
+.telar-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* ── Filas clave/valor ──────────────────────────────────────────────────── */
+
+.kv-list { display: flex; flex-direction: column; }
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  font-size: 12.5px;
+}
+.kv-row + .kv-row { border-top: 1px solid var(--border); }
+.kv-key { color: var(--text-muted); flex-shrink: 0; }
+.kv-val {
+  color: var(--telar-ink);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.kv-row.big .kv-val { font-size: 16px; font-weight: 750; }
+
+/* ── Permisos ───────────────────────────────────────────────────────────── */
+
+.perm-list { display: flex; flex-direction: column; gap: 2px; }
+.perm-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 7px 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.perm-row.granted { color: #2B3A4A; }
+.perm-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.perm-row.granted .perm-icon { color: var(--telar-mint-ink); }
+.perm-row.denied  .perm-icon { color: var(--text-muted); }
+
+/* ── Monto destacado ────────────────────────────────────────────────────── */
+
+.telar-amount {
+  text-align: center;
+  padding: 10px 0 14px;
+}
+.telar-amount-value {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--telar-ink);
+  font-variant-numeric: tabular-nums;
+}
+.telar-amount-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* ── Éxito ──────────────────────────────────────────────────────────────── */
+
+.telar-success-ring {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--telar-mint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto 0;
+  color: var(--telar-ink);
+}
+
+/* ── Registro de eventos ────────────────────────────────────────────────── */
+
+.telar-events {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 9.5px;
+  line-height: 1.7;
+  color: var(--telar-blue-ink);
+  border-top: 1px dotted var(--telar-border);
+  padding-top: 10px;
+  margin-top: 14px;
+  word-break: break-all;
+}
+
+/* ── Pie de atribución ──────────────────────────────────────────────────── */
+
+.telar-attrib {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+/* ── Error ──────────────────────────────────────────────────────────────── */
+
+.telar-error {
+  background: rgba(165, 84, 27, 0.08);
+  border: 1px solid rgba(165, 84, 27, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #7A3D12;
+  margin-bottom: 12px;
+}
