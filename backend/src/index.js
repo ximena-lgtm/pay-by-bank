@@ -15,6 +15,7 @@ import {
   computeConsumption,
   PaymentConsentError,
   SCHEMA_HANDLES,
+  ledgerConfig,
   TELAR,
 } from './ledger.js';
 import { PURPOSE_CODES } from './consents.js';
@@ -92,6 +93,47 @@ const INITIATOR = {
 function findBank(bankId) {
   return BANKS.find(b => b.id === bankId);
 }
+
+// ─── Diagnóstico ──────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/health — qué falta para que el demo funcione.
+ *
+ * Existe porque el modo de fallo natural de este despliegue es mudo: si la función
+ * no arranca o el ledger no responde, el frontend solo muestra listas vacías. Una
+ * petición aquí dice si faltan variables de entorno, si los esquemas entraron en el
+ * paquete y si el ledger contesta.
+ */
+app.get('/api/health', async (_req, res) => {
+  const config = ledgerConfig();
+
+  const checks = {
+    env: {
+      ok: config.ready,
+      detail: config.ready ? 'variables presentes' : `faltan: ${config.missing.join(', ')}`,
+    },
+    schemas: {
+      ok: Boolean(SCHEMA_HANDLES.data && SCHEMA_HANDLES.payment),
+      detail: `${SCHEMA_HANDLES.data}, ${SCHEMA_HANDLES.payment}`,
+    },
+    banks: { ok: BANKS.length > 0, detail: `${BANKS.length} entidades en el directorio` },
+    ledger: { ok: false, detail: 'no se intentó' },
+  };
+
+  if (config.ready) {
+    try {
+      const consents = await listUserConsents(CUSTOMER.id, null, 'data_access');
+      checks.ledger = { ok: true, detail: `responde · ${consents.length} consentimientos activos` };
+    } catch (error) {
+      checks.ledger = { ok: false, detail: error.message };
+    }
+  } else {
+    checks.ledger.detail = 'sin credenciales no se intenta';
+  }
+
+  const ok = Object.values(checks).every(c => c.ok);
+  res.status(ok ? 200 : 503).json({ ok, ledger: config.url, audience: config.audience, checks });
+});
 
 // ─── Trip ─────────────────────────────────────────────────────────────────────
 

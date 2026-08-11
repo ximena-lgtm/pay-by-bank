@@ -115,13 +115,25 @@ npm run schema:register     # data-consent y payment-consent · idempotente
 
 ## Despliegue
 
-Tres cosas que hay que configurar, y las tres se descubrieron rompiéndose:
+### Diagnóstico primero
+
+```
+GET /api/health
+```
+
+Reporta si faltan variables de entorno, si los esquemas entraron en el paquete y si el ledger responde. Existe porque el modo de fallo natural de este despliegue es mudo: si algo se rompe, el frontend solo muestra listas vacías. Devuelve 503 cuando algo falla, con el detalle de cada verificación.
+
+### Configuración
+
+Tres cosas, y las tres se descubrieron rompiéndose:
 
 **Variables de entorno en la plataforma.** `LEDGER_URL`, `SIGNER_PUBLIC` y `SIGNER_SECRET`. El `.env` del repo no se lee en runtime, y la capa de ledger falla al importarse si faltan — a propósito, para no operar contra un ledger equivocado. Sin ellas la función serverless revienta y el frontend muestra listas vacías.
 
 **La API es un catch-all**, `api/[[...path]].js`. Un `api/index.js` con un rewrite de `/api/(.*)` a `/api/index` no sirve: el rewrite cambia la ruta que ve Express, que solo conoce `/api/banks`, `/api/accounts` y compañía, así que toda petición responde 404.
 
 **El rewrite es solo para el router del cliente**, `/((?!api/).*)` a `/index.html`. Sin él, recargar `/payment-methods` en el navegador da 404. Y ojo: Vercel valida `vercel.json` de forma estricta y rechaza claves extra en los objetos de `rewrites` — ni siquiera un `comment`.
+
+Dos detalles del empaquetado que rompen la función en silencio: los esquemas JSON se cargan con `new URL('./schemas/x.json', import.meta.url)` y rutas literales, porque una ruta calculada no la rastrea el empaquetador y los archivos no entran en el paquete; y `ajv` está declarado en el `package.json` de la raíz, no solo en el del backend, que es de donde se instalan las dependencias de la función.
 
 ## Request-to-Pay
 
