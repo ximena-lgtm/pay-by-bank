@@ -1,139 +1,240 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authorizePayment } from '../api/index.js';
+import { TELAR, formatCOP } from '../telar/brand.js';
+import { telarState, logTelarEvent } from '../telar/useTelar.js';
+import { activateLink, createPaymentConsent, authorizePayment } from '../api/index.js';
+import '../telar/telar.css';   // consent-tag, kv-list y telar-error
 import './S3NuSCA.css';
 
+const SCA_METHODS = [
+  { id: 'biometric_face_id', name: 'Face ID',        desc: 'Biometría del dispositivo' },
+  { id: 'otp_sms',           name: 'Clave dinámica', desc: '6 dígitos por SMS' },
+];
+
+/**
+ * Autenticación reforzada y otorgamiento del consentimiento.
+ *
+ * Tiene tres modos porque el consentimiento que se otorga cambia según de dónde
+ * venga el usuario. En el modo encadenado el banco pide una sola autenticación
+ * y Telar ancla dos consentimientos distintos: uno de acceso a 90 días y uno de
+ * pago de uso único.
+ */
 export default function S3NuSCA() {
   const navigate = useNavigate();
-  const [authMethod, setAuthMethod] = useState('biometric');
+  const [method, setMethod] = useState('biometric_face_id');
   const [loading, setLoading] = useState(false);
-  const [bank, setBank] = useState(null);
-  const [instrument, setInstrument] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Leer información del banco e instrumento
-    const bankStr = sessionStorage.getItem('selectedBank');
-    const instrumentStr = sessionStorage.getItem('instrument');
+  const bank = telarState.getBank();
+  const payment = telarState.getPayment();
+  const dataConsent = telarState.getDataConsent();
+  const flow = telarState.getFlow();
 
-    if (bankStr) {
-      setBank(JSON.parse(bankStr));
-    }
-    if (instrumentStr) {
-      setInstrument(JSON.parse(instrumentStr));
-    }
-  }, []);
+  const grantsAccess = flow === 'link' || flow === 'link+pay';
+  const grantsPayment = flow === 'pay' || flow === 'link+pay';
 
-  async function handleAuth() {
-    setLoading(true);
-    const token = sessionStorage.getItem('consentToken') || 'DEMO-TOKEN';
-
-    // Leer el consentHandle del instrument guardado
-    let consentHandle = token;
-    if (instrument) {
-      consentHandle = instrument.consentHandle || token;
-    }
-
-    const data = await authorizePayment(
-      token,
-      authMethod,
-      consentHandle,
-      bank.id,
-      instrument.amount
+  if (!bank) {
+    return (
+      <div className="screen-body" style={{ paddingTop: 40 }}>
+        <p className="telar-desc">No hay una solicitud en curso.</p>
+      </div>
     );
-    sessionStorage.setItem('paymentResult', JSON.stringify(data));
-    navigate('/processing');
   }
 
-  if (!bank || !instrument) {
-    return <div>Cargando...</div>;
+  // Un pago sin monto es un estado roto, no una autorización por cero pesos.
+  // Antes que mostrarla, se corta: nadie debería firmar un débito vacío.
+  if (grantsPayment && !payment?.amount) {
+    return (
+      <>
+        <div className="bank-header" style={{ background: bank.color }}>
+          <div className="bank-header-top" />
+          <div className="bank-wordmark">{bank.name}</div>
+          <div className="bank-subtitle">Solicitud incompleta</div>
+        </div>
+        <div className="screen-body">
+          <div className="telar-error" style={{ marginTop: 18 }}>
+            La solicitud llegó sin un monto que autorizar. No se firmó nada.
+            Vuelve al viaje e inténtalo de nuevo.
+          </div>
+          <div className="cta-area">
+            <button
+              className="btn-primary"
+              onClick={() => { telarState.reset(); navigate('/'); }}
+            >
+              Volver al viaje
+            </button>
+          </div>
+        </div>
+      </>
+    );
   }
 
-  const amount = instrument.amount?.toLocaleString('es-CO') || '18.500';
+  async function handleAuthorize() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Otorgar el acceso a datos, si esta visita lo incluye
+      if (grantsAccess) {
+        const res = await activateLink(dataConsent?.handle, method, bank.id);
+        if (!res.ok) throw new Error(res.message || 'No se pudo otorgar el acceso.');
+        telarState.setDataConsent({ ...dataConsent, ...res.consent });
+        logTelarEvent('DATA_CONSENT_GRANTED', { detail: `scope=accounts,balances · 90d` });
+      }
+
+      // Solo vinculación: termina aquí, sin mover dinero
+      if (!grantsPayment) {
+        setLoading(false);
+        navigate('/telar/linked');
+        return;
+      }
+
+      // 2. El consentimiento de pago cuelga del de acceso, así que se ancla ahora
+      let paymentConsent = telarState.getPaymentConsent();
+      if (!paymentConsent) {
+        const created = await createPaymentConsent(bank.id, payment?.amount);
+        if (!created.ok) throw new Error(created.message || 'No se pudo crear la autorización de pago.');
+        paymentConsent = created.consent;
+        telarState.setPaymentConsent(paymentConsent);
+        telarState.setMandate(created.mandate);
+        telarState.setPayment({ ...payment, ...created.payment });
+        logTelarEvent('PAYMENT_CONSENT_CREATED', { detail: 'single_use · 5 min' });
+      }
+
+      // 3. Autorizar el débito
+      const res = await authorizePayment(paymentConsent.handle, method, bank.id, payment?.amount);
+      if (!res.ok) throw new Error(res.message || 'No se pudo autorizar el pago.');
+
+      telarState.setResult(res);
+      logTelarEvent('PAYMENT_CONSENT_GRANTED', { detail: 'single_use' });
+      logTelarEvent('INTENT_COMMITTED', { detail: res.intent?.handle });
+
+      setLoading(false);
+      navigate('/processing');
+    } catch (e) {
+      setLoading(false);
+      setError(e.message);
+    }
+  }
+
+  function handleReject() {
+    logTelarEvent('EXIT', { detail: 'rejected_at_bank' });
+    telarState.reset();
+    navigate('/');
+  }
+
+  const title = grantsPayment && grantsAccess
+    ? 'Autoriza el acceso y el pago'
+    : grantsPayment
+      ? 'Autoriza el débito'
+      : 'Autoriza el acceso a tu cuenta';
 
   return (
     <>
-      {/* Bank branded header */}
-      <div className="nu-header" style={{ backgroundColor: bank.color }}>
-        <div className="nu-wordmark">{bank.name}</div>
-        <div className="nu-subtitle">Autorización de pago</div>
+      <div className="bank-header" style={{ background: bank.color }}>
+        <div className="bank-header-top" />
+        <div className="bank-wordmark">{bank.name}</div>
+        <div className="bank-subtitle">
+          {grantsPayment ? 'Autorización de pago' : 'Solicitud de acceso a datos'}
+        </div>
       </div>
 
       <div className="screen-body">
-        <h2 className="sca-title">Autoriza este pago</h2>
-        <p className="sca-desc">Verifica la información del pago y selecciona cómo deseas autenticar.</p>
-
-        {/* Payment summary */}
-        <div className="payment-summary">
-          <div className="ps-accent" style={{ backgroundColor: bank.color }} />
-          <div className="ps-content">
-            <p className="ps-merchant">Pago a Uber Colombia</p>
-            <p className="ps-route">UberX · El Dorado → Zona Rosa</p>
-            <p className="ps-amount">COP {amount}</p>
-          </div>
+        <div className="card requester-note">
+          <span className="requester-dot" aria-hidden="true" />
+          <p>
+            {grantsPayment
+              ? `Pago iniciado por ${TELAR.name} · comercio: ${payment?.to || 'Uber Colombia SAS'}`
+              : `Solicitud recibida de ${TELAR.name}, ${TELAR.role.toLowerCase()}`}
+          </p>
         </div>
+
+        <h2 className="sca-title">{title}</h2>
+
+        {error && <div className="telar-error" style={{ marginTop: 14 }}>{error}</div>}
+
+        {grantsAccess && (
+          <div className="sca-block">
+            <span className="consent-tag data">Acceso a datos</span>
+            <div className="kv-list">
+              <div className="kv-row">
+                <span className="kv-key">Cuenta</span>
+                <span className="kv-val">{bank.accountType} {bank.account}</span>
+              </div>
+              <div className="kv-row">
+                <span className="kv-key">Permite</span>
+                <span className="kv-val">Titularidad y saldo</span>
+              </div>
+              <div className="kv-row">
+                <span className="kv-key">Vigencia</span>
+                <span className="kv-val">90 días · revocable</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {grantsPayment && (
+          <div className="sca-block">
+            <span className="consent-tag pay">Autorización de pago</span>
+            <div className="kv-list">
+              <div className="kv-row big">
+                <span className="kv-key">Monto</span>
+                <span className="kv-val">COP {formatCOP(payment?.amount)}</span>
+              </div>
+              <div className="kv-row">
+                <span className="kv-key">Desde</span>
+                <span className="kv-val">{bank.accountType} {bank.account}</span>
+              </div>
+              <div className="kv-row">
+                <span className="kv-key">Hacia</span>
+                <span className="kv-val">{payment?.to || 'Uber Colombia SAS'}</span>
+              </div>
+              <div className="kv-row">
+                <span className="kv-key">Vigencia</span>
+                <span className="kv-val">Uso único</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="divider" />
 
-        {/* Auth method */}
-        <p className="label">Segundo factor de autenticación</p>
+        <p className="label">Autenticación reforzada · Decreto 368/2026</p>
 
-        <div
-          className={`card auth-option ${authMethod === 'biometric' ? 'selected' : ''}`}
-          onClick={() => setAuthMethod('biometric')}
-          style={authMethod === 'biometric' ? { borderColor: bank.color } : {}}
-        >
-          <div className="auth-icon" style={authMethod === 'biometric' ? { color: bank.color } : {}}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/>
-              <path d="M8 7h8M8 11h8M12 15v4M8 19h8"/>
-            </svg>
-          </div>
-          <div className="auth-info">
-            <p className="auth-name">Huella digital / Face ID</p>
-            <p className="auth-sub">Recomendado · Rápido y seguro</p>
-          </div>
-          {authMethod === 'biometric' ? (
-            <div className="radio-check">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill={bank.color}>
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5l-4-4 1.41-1.41L10 13.67l6.59-6.59L18 8.5l-8 8z"/>
-              </svg>
-            </div>
-          ) : <div className="radio-empty" />}
-        </div>
-
-        <div
-          className={`card auth-option otp-option ${authMethod === 'pin' ? 'selected' : ''}`}
-          onClick={() => setAuthMethod('pin')}
-          style={authMethod === 'pin' ? { marginTop: 8, borderColor: bank.color } : { marginTop: 8 }}
-        >
-          <div className="auth-icon muted" style={authMethod === 'pin' ? { color: bank.color } : {}}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/>
-            </svg>
-          </div>
-          <div className="auth-info">
-            <p className="auth-name">Código OTP por SMS</p>
-            <p className="auth-sub">Se enviará a tu número registrado</p>
-          </div>
-          {authMethod === 'pin' ? (
-            <div className="radio-check">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill={bank.color}>
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5l-4-4 1.41-1.41L10 13.67l6.59-6.59L18 8.5l-8 8z"/>
-              </svg>
-            </div>
-          ) : <div className="radio-empty" />}
-        </div>
+        {SCA_METHODS.map(m => (
+          <button
+            key={m.id}
+            className={`sca-method ${method === m.id ? 'selected' : ''}`}
+            onClick={() => setMethod(m.id)}
+            style={method === m.id ? { borderColor: bank.color, background: `${bank.color}0F` } : undefined}
+          >
+            <span
+              className="sca-radio"
+              style={method === m.id ? { borderColor: bank.color, background: bank.color } : undefined}
+            />
+            <span className="sca-method-body">
+              <span className="sca-method-name">{m.name}</span>
+              <span className="sca-method-desc">{m.desc}</span>
+            </span>
+          </button>
+        ))}
 
         <div className="cta-area">
-          <button className="btn-primary" style={{ backgroundColor: bank.color }} onClick={handleAuth} disabled={loading}>
-            {loading ? 'Autenticando...' : 'Autenticar y pagar'}
-            {!loading && (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            )}
+          <button
+            className="btn-primary"
+            style={{ background: bank.color }}
+            onClick={handleAuthorize}
+            disabled={loading}
+          >
+            {loading
+              ? 'Autorizando…'
+              : grantsPayment
+                ? `Autorizar $${formatCOP(payment?.amount)}`
+                : 'Autorizar acceso'}
           </button>
-          <button className="btn-secondary" onClick={() => navigate('/')}>Cancelar pago</button>
+          <button className="btn-secondary" onClick={handleReject} disabled={loading}>
+            Rechazar
+          </button>
         </div>
       </div>
     </>

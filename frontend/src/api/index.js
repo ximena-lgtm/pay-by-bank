@@ -1,50 +1,63 @@
 const BASE = '/api';
 
-export async function getTrip() {
-  const r = await fetch(`${BASE}/trip`);
-  return r.json();
+async function req(path, options) {
+  const r = await fetch(`${BASE}${path}`, options);
+  const data = await r.json().catch(() => ({ ok: false, error: 'Respuesta inválida del servidor' }));
+  return data;
 }
 
-export async function getBanks() {
-  const r = await fetch(`${BASE}/banks`);
-  return r.json();
-}
-
-export async function initiatePayment(bankId) {
-  const r = await fetch(`${BASE}/payment/initiate`, {
+function post(path, body) {
+  return req(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bankId }),
+    body: JSON.stringify(body || {}),
   });
-  return r.json();
 }
 
-export async function authorizePayment(consentToken, method, consentHandle, bankId, amount) {
-  const r = await fetch(`${BASE}/payment/authorize`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      consentToken,
-      method,
-      consentHandle: consentHandle || consentToken,
-      bankId,
-      amount
-    }),
-  });
-  return r.json();
-}
+// ─── Viaje ────────────────────────────────────────────────────────────────────
 
-export async function getConsent(consentHandle) {
-  const r = await fetch(`${BASE}/consent/${consentHandle}`);
-  return r.json();
-}
+export const getTrip = () => req('/trip');
+export const completeTrip = () => post('/trip/complete');
 
-export async function completeTrip() {
-  const r = await fetch(`${BASE}/trip/complete`, { method: 'POST' });
-  return r.json();
-}
+// ─── Directorio y cuentas ─────────────────────────────────────────────────────
 
-export async function getConsentsByUser(customerId = 'customer_001') {
-  const r = await fetch(`${BASE}/consents?customerId=${customerId}`);
-  return r.json();
-}
+/** Entidades conectadas a Telar. No son PISP: el PISP es Telar. */
+export const getBanks = () => req('/banks');
+
+/** Cuentas del titular con consentimiento de acceso a datos vigente. */
+export const getAccounts = () => req('/accounts');
+
+// ─── Experiencia A · Acceso a datos ───────────────────────────────────────────
+
+/** Crea (o reutiliza) el consentimiento de acceso a datos para una entidad. */
+export const initiateLink = (bankId) => post('/consent/link/initiate', { bankId });
+
+/**
+ * El banco otorga el acceso tras la SCA.
+ *
+ * bankId viaja porque es en la activación cuando la entidad emisora revela la
+ * cuenta: el proof la ata al consentimiento, y de ahí sale el token que después
+ * usa el mandato de pago.
+ */
+export const activateLink = (consentHandle, scaMethod, bankId) =>
+  post('/consent/link/activate', { consentHandle, scaMethod, bankId });
+
+/** El titular revoca el acceso a datos. */
+export const revokeConsent = (handle, reason) => post(`/consent/${handle}/revoke`, { reason });
+
+// ─── Experiencia B · Pago ─────────────────────────────────────────────────────
+
+/** Crea el consentimiento de pago de uso único. Exige acceso a datos vigente. */
+export const createPaymentConsent = (bankId, amount) =>
+  post('/payment/consent', { bankId, amount });
+
+/** SCA del débito: activa el consentimiento de pago y crea el intent. */
+export const authorizePayment = (paymentConsentHandle, scaMethod, bankId, amount) =>
+  post('/payment/authorize', { paymentConsentHandle, scaMethod, bankId, amount });
+
+export const getPayment = (paymentId) => req(`/payment/${paymentId}`);
+
+// ─── Consentimientos ──────────────────────────────────────────────────────────
+
+export const getConsents = (type = 'data_access') => req(`/consents?type=${type}`);
+export const getConsent = (handle) => req(`/consent/${handle}`);

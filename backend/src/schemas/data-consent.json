@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consentimiento de acceso a datos · Open Finance Colombia",
+  "description": "Autoriza al iniciador a verificar titularidad y consultar saldo de una cuenta. Se otorga una vez, al vincular la cuenta. NO autoriza mover dinero: la categoría 1 de iniciación de pago está excluida del data_scope por esquema, y cada débito exige un mandato aparte (payment-consent). Base: Decreto 1297/2022 (Título 4, Libro 17), Decreto 368/2026 (Título 8, Libro 35), CE 004/2024 (Cap. IX).",
+  "type": "object",
+  "required": ["handle", "schema", "wallet", "source", "target", "custom"],
+  "properties": {
+    "handle": {
+      "type": "string",
+      "pattern": "^dconsent_[a-zA-Z0-9_\\-]+$",
+      "description": "Prefijo dconsent_ para distinguirlo a simple vista del mandato de pago."
+    },
+    "schema": { "const": "data-consent" },
+    "wallet": { "type": "string", "minLength": 1, "description": "Titular de la cuenta, fijado en creación." },
+    "source": { "type": "string", "minLength": 1, "description": "Entidad financiera donde está la cuenta (bridge)." },
+    "target": {
+      "type": "string",
+      "pattern": "^tpp_[a-zA-Z0-9_\\-]+$",
+      "description": "Iniciador que recibe el acceso. Es el PISP registrado ante la SFC, no el comercio."
+    },
+
+    "custom": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Minimización como restricción dura: un campo de más es incumplimiento (Art. 2.17.4.1.3 num. 4). El default es excluir.",
+      "required": [
+        "consent_id",
+        "consent_version",
+        "consent_class",
+        "initiator_id",
+        "initiator_legal_name",
+        "initiator_domicile",
+        "data_provider_id",
+        "titular_ref",
+        "data_scope",
+        "purpose",
+        "treatment",
+        "commercialization",
+        "valid_from",
+        "valid_until",
+        "evidence"
+      ],
+      "properties": {
+        "consent_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "UUID v4. Inmutable."
+        },
+        "consent_version": { "const": "1.0" },
+        "consent_class": {
+          "const": "data_access",
+          "description": "Discriminante explícito entre las dos clases de consentimiento. No se deduce del purpose."
+        },
+
+        "initiator_id": { "type": "string", "pattern": "^tpp_[a-zA-Z0-9_\\-]+$", "description": "Referencia al Directorio SFC." },
+        "initiator_legal_name": { "type": "string", "minLength": 3 },
+        "initiator_domicile": { "type": "string", "minLength": 3, "description": "Se renderiza al titular en la confirmación (Art. 2.35.8.3.2 num. 1)." },
+        "data_provider_id": { "type": "string", "minLength": 1, "description": "Entidad emisora que otorga el acceso y ejecuta la SCA." },
+        "titular_ref": {
+          "type": "string",
+          "pattern": "^hmac_sha256_[a-f0-9]{64}$",
+          "description": "Pseudónimo del titular. Nunca el documento en claro (circulación restringida, Art. 2.35.8.1.3 num. 3)."
+        },
+
+        "data_scope": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["category_2_accounts_read", "category_3_balances_read", "category_4_transactions_read"]
+          },
+          "description": "Solo lectura. category_1_payment_initiation NO es un valor admisible aquí: el esquema hace imposible que un consentimiento de datos autorice débitos."
+        },
+        "purpose": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "text"],
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": ["ACCOUNT_LINKING", "ACCOUNT_AGGREGATION", "BALANCE_VERIFICATION"],
+              "description": "Catálogo cerrado. Texto libre como único identificador de finalidad está prohibido (Art. 2.35.8.3.2 num. 4)."
+            },
+            "text": { "type": "string", "minLength": 20, "description": "Verbatim al titular, sin parafrasear en la emisora." }
+          }
+        },
+
+        "treatment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["storage_permission", "data_retention_days", "mode"],
+          "properties": {
+            "storage_permission": { "type": "string", "enum": ["DURATION_BOUND", "NONE"] },
+            "data_retention_days": { "type": "integer", "minimum": 0, "maximum": 365 },
+            "mode": { "type": "string", "enum": ["STORE", "NO_STORE"] }
+          }
+        },
+        "commercialization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flag", "compensation_offered"],
+          "properties": {
+            "flag": { "type": "boolean" },
+            "compensation_offered": { "type": "boolean" }
+          }
+        },
+
+        "valid_from": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+        "valid_until": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+          "description": "Obligatorio: un consentimiento de datos sin fecha de fin sería una autorización indefinida."
+        },
+
+        "account": {
+          "description": "Cuenta vinculada. Null en creación, atada en la activación con lo que devuelve la entidad emisora.",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["token", "masked"],
+              "properties": {
+                "token": { "type": "string", "minLength": 8, "description": "Token, nunca el número completo en la copia del iniciador." },
+                "masked": { "type": "string", "pattern": "^\\*{1,2}[0-9]{4}$" },
+                "type": { "type": "string", "enum": ["SAVINGS", "CHECKING", "DEPOSIT"] },
+                "holder_name": { "type": "string", "minLength": 3 }
+              }
+            }
+          ]
+        },
+
+        "sca_method": {
+          "description": "Mínimo dos factores (Art. 2.35.8.3.4). Null en creación, poblado en la activación.",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "items": { "type": "string", "enum": ["KNOWLEDGE_PASSWORD", "POSSESSION_DEVICE", "POSSESSION_OTP_SMS", "INHERENCE_BIOMETRIC"] }
+            }
+          ]
+        },
+        "sca_performed_by": {
+          "description": "Debe igualar data_provider_id: la SCA la ejecuta la entidad emisora (Art. 2.17.4.1.3 num. 3).",
+          "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }]
+        },
+
+        "granted_at":        { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" }], "description": "El valor autoritativo vive en los proofs; aquí queda null." },
+        "revoked_at":        { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" }] },
+        "revoked_by":        { "oneOf": [{ "type": "null" }, { "type": "string", "enum": ["TITULAR", "INITIATOR", "DATA_PROVIDER", "SUPERVISOR"] }], "description": "Revocable por cualquier actor (Art. 2.35.8.3.5 num. 2)." },
+        "revocation_reason": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 3 }] },
+        "superseded_by":     { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }], "description": "Modificar el consentimiento es crear un registro nuevo." },
+
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["event_log_ref", "retention_years"],
+          "properties": {
+            "event_log_ref": { "const": "ledger.anchor.proofs", "description": "El log append-only son los proofs del anchor: no se duplica." },
+            "retention_years": { "const": 5, "description": "CE 004/2024 §4.4.3." }
+          }
+        }
+      }
+    }
+  }
+}
