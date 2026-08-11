@@ -113,6 +113,16 @@ cd backend
 npm run schema:register     # data-consent y payment-consent · idempotente
 ```
 
+## Despliegue
+
+Tres cosas que hay que configurar, y las tres se descubrieron rompiéndose:
+
+**Variables de entorno en la plataforma.** `LEDGER_URL`, `SIGNER_PUBLIC` y `SIGNER_SECRET`. El `.env` del repo no se lee en runtime, y la capa de ledger falla al importarse si faltan — a propósito, para no operar contra un ledger equivocado. Sin ellas la función serverless revienta y el frontend muestra listas vacías.
+
+**La API es un catch-all**, `api/[[...path]].js`. Un `api/index.js` con un rewrite de `/api/(.*)` a `/api/index` no sirve: el rewrite cambia la ruta que ve Express, que solo conoce `/api/banks`, `/api/accounts` y compañía, así que toda petición responde 404.
+
+**El rewrite es solo para el router del cliente**, `/((?!api/).*)` a `/index.html`. Sin él, recargar `/payment-methods` en el navegador da 404. Y ojo: Vercel valida `vercel.json` de forma estricta y rechaza claves extra en los objetos de `rewrites` — ni siquiera un `comment`.
+
 ## Request-to-Pay
 
 Para construir el demo hermano de solicitud de pago, ver [REQUEST_TO_PAY_INSTRUCTIONS.md](REQUEST_TO_PAY_INSTRUCTIONS.md): mismos consentimientos, intent de tipo `request-to-pay`.
