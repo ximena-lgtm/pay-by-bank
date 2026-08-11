@@ -1,10 +1,6 @@
 import { createHash, randomUUID } from 'crypto';
 import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import Ajv from 'ajv';
-
-const HERE = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Los dos objetos de consentimiento del demo.
@@ -18,25 +14,29 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  * `category_1_payment_initiation` en su `data_scope`, así que es imposible que un
  * consentimiento de acceso autorice un débito. Cada pago exige su propio mandato.
  */
-const SCHEMAS = {
-  data: { handle: 'data-consent', file: 'schemas/data-consent.json' },
-  payment: { handle: 'payment-consent', file: 'schemas/payment-consent.json' },
-};
+/**
+ * Los esquemas se cargan con rutas literales y `new URL(...)` a propósito: es el
+ * patrón que el empaquetador de Vercel sabe rastrear. Con una ruta calculada en un
+ * bucle los JSON no entran en el paquete, y la función muere con ENOENT al
+ * importarse — antes de que exista una sola ruta que pueda reportar el problema.
+ */
+const DATA_CONSENT_SCHEMA = JSON.parse(
+  readFileSync(new URL('./schemas/data-consent.json', import.meta.url), 'utf8')
+);
+const PAYMENT_CONSENT_SCHEMA = JSON.parse(
+  readFileSync(new URL('./schemas/payment-consent.json', import.meta.url), 'utf8')
+);
+
+export const SCHEMA_HANDLES = { data: 'data-consent', payment: 'payment-consent' };
 
 // strict:false porque los esquemas llevan `description` en sitios que ajv, en modo
 // estricto, considera palabras clave desconocidas.
 const ajv = new Ajv({ allErrors: true, strict: false });
 
-const validators = Object.fromEntries(
-  Object.entries(SCHEMAS).map(([kind, { file }]) => [
-    kind,
-    ajv.compile(JSON.parse(readFileSync(join(HERE, file), 'utf8'))),
-  ])
-);
-
-export const SCHEMA_HANDLES = Object.fromEntries(
-  Object.entries(SCHEMAS).map(([kind, { handle }]) => [kind, handle])
-);
+const validators = {
+  data: ajv.compile(DATA_CONSENT_SCHEMA),
+  payment: ajv.compile(PAYMENT_CONSENT_SCHEMA),
+};
 
 /** Valida un anchor completo contra su esquema. Lanza con los errores concretos. */
 export function validateConsentAnchor(kind, anchor) {
@@ -52,7 +52,7 @@ export function validateConsentAnchor(kind, anchor) {
 
   throw new PaymentConsentError(
     'consent_schema_invalid',
-    `El consentimiento no cumple ${SCHEMAS[kind].handle}: ${errors.join(' · ')}`,
+    `El consentimiento no cumple ${SCHEMA_HANDLES[kind]}: ${errors.join(' · ')}`,
     { errors }
   );
 }

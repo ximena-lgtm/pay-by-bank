@@ -20,11 +20,22 @@ const SIGNER_PUBLIC = process.env.SIGNER_PUBLIC;
 const SIGNER_SECRET = process.env.SIGNER_SECRET;
 const LEDGER_AUDIENCE = process.env.LEDGER_AUDIENCE || 'open-finance2';
 
-if (!SIGNER_PUBLIC || !SIGNER_SECRET) {
-  throw new Error('Faltan SIGNER_PUBLIC y SIGNER_SECRET en el entorno.');
-}
-
 const KEY_PAIR = { public: SIGNER_PUBLIC, secret: SIGNER_SECRET, format: 'ed25519-raw' };
+
+/**
+ * Estado de la configuración, para diagnóstico.
+ *
+ * No se lanza al importar el módulo: una excepción ahí mata la función serverless
+ * completa, y entonces no queda ninguna ruta capaz de contar qué pasó — el síntoma
+ * es un directorio de bancos vacío, que no dice nada. Se falla al usar el ledger,
+ * y /api/health lo reporta.
+ */
+export function ledgerConfig() {
+  const missing = [];
+  if (!SIGNER_PUBLIC) missing.push('SIGNER_PUBLIC');
+  if (!SIGNER_SECRET) missing.push('SIGNER_SECRET');
+  return { url: LEDGER_URL, audience: LEDGER_AUDIENCE, missing, ready: missing.length === 0 };
+}
 
 // ─── Partes ───────────────────────────────────────────────────────────────────
 
@@ -65,6 +76,15 @@ export const TELAR = {
  * llamada. El token es de vida corta, así que no se cachea.
  */
 function sdk() {
+  const { missing } = ledgerConfig();
+  if (missing.length > 0) {
+    throw new PaymentConsentError(
+      'ledger_not_configured',
+      `Falta configurar ${missing.join(' y ')} en el entorno del despliegue.`,
+      { missing }
+    );
+  }
+
   return new LedgerSdk({
     server: LEDGER_URL,
     secure: {
