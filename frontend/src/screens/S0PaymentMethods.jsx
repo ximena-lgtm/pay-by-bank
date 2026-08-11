@@ -27,6 +27,9 @@ export default function S0PaymentMethods() {
     const [acc, bk] = await Promise.all([getAccounts(), getBanks()]);
     if (acc.ok) setAccounts(acc.accounts);
     if (bk.ok) setBanks(bk.banks);
+    if (!acc.ok || !bk.ok) {
+      setError(acc.message || bk.message || 'No se pudo contactar al iniciador de pagos.');
+    }
     setLoading(false);
   }, []);
 

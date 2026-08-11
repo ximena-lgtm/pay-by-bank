@@ -35,6 +35,12 @@ export default function S1SelectPayment() {
         if (acc.accounts.length > 0) setSelected(acc.accounts[0].bankId);
       }
       if (bk.ok) setBanks(bk.banks);
+
+      // Un API caído se veía como un directorio vacío, indistinguible de "no hay
+      // entidades". Mejor decirlo: el módulo no puede hacer su trabajo.
+      if (!bk.ok || !acc.ok) {
+        setError(bk.message || acc.message || 'No se pudo contactar al iniciador de pagos. Reintenta en un momento.');
+      }
       setLoading(false);
     });
   }, []);

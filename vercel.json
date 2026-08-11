@@ -2,6 +2,10 @@
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" }
+    {
+      "comment": "Todo lo que no sea /api/* lo resuelve el router del cliente",
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

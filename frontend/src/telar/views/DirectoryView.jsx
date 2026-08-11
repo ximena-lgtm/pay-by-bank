@@ -20,7 +20,10 @@ export default function DirectoryView() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getBanks().then(d => { if (d.ok) setBanks(d.banks); });
+    getBanks().then(d => {
+      if (d.ok) setBanks(d.banks);
+      else setError(d.message || 'No se pudo cargar el directorio de entidades.');
+    });
   }, []);
 
   const q = query.trim().toLowerCase();
